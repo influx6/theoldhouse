@@ -1,0 +1,59 @@
+var module = module || { exports: {} };
+
+module.exports = (function(ts,core){
+	
+
+	var jaz = ts.Jaz, m = ts.Matchers, spec = {}, Core = core;
+	m.verbose = false;
+
+	spec.sandbox = jaz.create("Unit Testing Core.Sandbox",function(){
+
+		var core = Core.Sandbox();
+
+		this.it('should be able to create a core instance',function(){
+			m.scoped(this).obj(core).isInstanceOf(Core);
+		});
+
+		this.it('should have a facade object',function(){
+			m.scoped(this).obj(core).hasKey('facade')
+		});
+
+		this.it('does core.pm exists',function(){
+			m.scoped(this).obj(core.pm).isValid();
+		});
+
+		this.it('can add a permission',function(){
+			core.pm.add('admin','juggernaught',{ request: true });
+			m.scoped(this).obj(core.pm.get('admin')).isValid();
+		});
+
+		this.it('is Core.pm.get(permission) functional',function(){
+			m.scoped(this).obj(core.pm.get('admin')).isValid();
+		});
+
+		this.it('core.manage can detail permission change',function(){
+			core.pm.manage('admin','juggernaught','create',false);
+			m.scoped(this).obj(core.pm.get('admin','juggernaught','create')).is(false);
+		});
+
+		this.it('approve a permission',function(){
+			core.pm.approve('admin','juggernaught','create');
+			m.scoped(this).obj(core.pm.get('admin','juggernaught','create')).is(true);
+		});
+	
+		this.it('disapprove a permission',function(){
+			core.pm.revoke('admin','juggernaught','create');
+			m.scoped(this).obj(core.pm.get('admin','juggernaught','create')).is(false);
+		});
+
+		// this.it('push up a permission',function(){
+		// 	core.pm.push('frog',{ 'admin':{ 'request': true }});
+		// 	console.log(core.pm)
+		// 	m.scoped(this).obj(core.pm.get('frog','admin','request')).is(true);
+		// });
+	});
+
+
+	return spec;
+
+});

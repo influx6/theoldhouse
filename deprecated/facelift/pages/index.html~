@@ -1,0 +1,43 @@
+<!doctype html>
+<html id="root">
+  <head>
+    <script type="text/javascript" src="../../em.js/em.js"></script>
+  </head>
+  <body>
+    <div>
+
+      <p>
+        some interesting words
+        </p>
+
+        <section id="articles">
+          <article> who did waht to who</article>
+          <article> go jump of the stream</article>
+        </section>
+
+        <section id="slideshow">
+          <ul>
+            <li>
+              <img src="" />
+            </li>
+            <li>
+              <img src="" />
+            </li>
+            <li>
+              <img src="" />
+            </li>
+            <li>
+              <img src="" />
+            </li>
+          </ul>
+        </section>
+    </div>
+  </body>
+    <script type="text/javascript" src="../../as/lib/core.js"></script>
+    <script type="text/javascript" src="../../whenenv.js/lib/whenenv.js"></script>
+    <script type="text/javascript" src="../../ds/lib/core.js"></script>
+    <script type="text/javascript" src="../../streams/lib/stream.js"></script>
+    <script type="text/javascript" src="../../as-contrib/lib/as-contrib.js"></script>
+    <script type="text/javascript" src="../../transporter.js/lib/transporter.js"></script>
+    <script type="text/javascript" src="../lib/facelift.js"></script>
+</html>

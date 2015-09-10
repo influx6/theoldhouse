@@ -1,0 +1,9 @@
+name: guardedfs
+version: 0.1.4
+author: Alexander Ewetumo <trinoxf@gmail.com>
+description: provides a guarded directory and file wrapper,a very simple switch as means of ensuring changability in a file or directory,very simple!
+homepage: http://github.com/influx6/guardedfs.dart
+dependencies:
+  hub: any
+  path: any
+  streamable: any

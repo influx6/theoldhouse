@@ -1,0 +1,34 @@
+{
+  "name": "resourcedjs",
+  "version": "0.0.7",
+  "description": "a simple restful resource url mapper",
+  "main": "resourced.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "stackq":"0.x.x",
+    "routd":"0.x.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/resourced"
+  },
+  "keywords": [
+    "resourceful",
+    "restful",
+    "resources",
+    "resource",
+    "restful",
+    "urls",
+    "urls",
+    "resource",
+    "mapper"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/resourced/issues"
+  },
+  "homepage": "https://github.com/influx6/resourced"
+}

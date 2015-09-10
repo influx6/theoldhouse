@@ -1,0 +1,9 @@
+var ts = require('tsk').ToolStack,
+util = ts.Util,
+core = require('./builds/core').Core(ts),
+cjz = require('./jaz/sandbox.jaz')(ts,core);
+
+util.eachSync(cjz,function(e,i,o,fn){
+	if(e && util.isObject(e)) e.run();
+	fn(false);
+});

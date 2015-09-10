@@ -1,0 +1,32 @@
+{
+  "name": "em.js",
+  "version": "0.0.1",
+  "description": "a simple context wrapper for browser or nodejs.",
+  "main": "em.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+    "appstack":"0.x.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/em.js"
+  },
+  "keywords": [
+    "wrapper",
+    "browser",
+    "context",
+    "nodejs",
+    "context"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "mit",
+  "bugs": {
+    "url": "https://github.com/influx6/em.js/issues"
+  },
+  "homepage": "https://github.com/influx6/em.js"
+}

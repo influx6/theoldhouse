@@ -1,0 +1,156 @@
+<!doctype html>
+<html id="root">
+  <head>
+    <script type="text/javascript" src="../../em.js/em.js"></script>
+  </head>
+  <body>
+   <div id="wall" class='hide'>
+      <span id="close">Close</span>
+      <div id="panel">
+        <div id="case">
+			<div id="editView" class="hide">
+				  <p class="itemcase">
+					<label>ID:</label><br/>
+					<select class="itemcase">
+					  <option id="id">1</option>
+					</select>
+				  </p>
+				  <p class="itemcase">
+					<label>Question:</label><br/>
+					<input id="question" type='text'  value="What time did you sleep last night?" />
+				  </p>
+				  <p class="itemcase" id="lastcase">
+					<label>Options:</label><br/>
+					<div id="adder">
+						<input type='text' placeholder="Add New Option?" id="qos"/>
+						<input type='text' placeholder="Add Weight?" id="weight"/>
+						<a id="add_option_buttn">+</a>
+				  </div>
+					<ul id="itemContent">
+					</ul>
+				  </p>
+				  <p id="doneButton">
+					<a href="#done">Done</a>
+				  </p>
+			</div>
+			<div id="addView" class="hide">
+				  <p class="itemcase">
+					<label>Question:</label><br/>
+					<input id="question" type='text'  value="What time did you sleep last night?" />
+				  </p>
+				  <p class="itemcase" id="lastcase">
+					<label>Options:</label><br/>
+					<div id="adder">
+						<input type='text' placeholder="Add New Option?" id="qos"/>
+						<input type='text' placeholder="Add Weight?" id="weight"/>
+						<a id="add_option_buttn">+</a>
+				  </div>
+					<ul id="itemContent">
+					</ul>
+				  </p>
+				  <p id="doneButton">
+					<a href="#done">Done</a>
+				  </p>
+			</div>
+        </div>
+      </div>
+    </div>
+	<div class="cover grid96">
+		<header id="menu" class='full'>
+			<h1 id="logo"><a href="./index.html"><span>Addiction</span>Ranger</a></h1>
+			<nav id="menulinks">
+				<ul>
+					<li id="edit"><a href="#">Edit</a></li>
+					<li id="add"><a href="#">Add</a></li>
+				</ul>
+			</nav>
+		</header>
+		<div id="content" class='full'>
+			<section id="graph" class="box1-7">
+				<h2><a href="#">Get Result</a></h2>	
+				<div id="display_plane" class="hide"></div>
+			</section>
+			<section id="qp" class="box1-8">
+				<article id="1" class="qo">
+					<div id="pos" class="redbg">1</div>
+					<article id="ask">How long do you browse?</article>	
+					<ul class="options">
+                        <li id="cover" class="hides"></li>
+						<li>
+						 <label>
+						  <input type='radio' name="qo1" value="2 Hours"/>2 Hours
+					     </label>
+						</li>
+						<li>
+						 <label>
+						  <input type='radio' name="qo1" value="3 Hours"/>3 Hours
+					     </label>
+						</li>
+						<li>
+						 <label>
+						  <input type='radio' name="qo1" value="4 Hours"/>4 Hours
+					     </label>
+						</li>
+					</ul>
+				</article>
+				<article id="2" class="qo">
+					<div id="pos" class="redbg">2</div>
+					<article id="ask">How long do you use facebook?</article>	
+					<ul class="options">
+                        <li id="cover" class="hides"></li>
+						<li>
+						 <label>
+						  <input type='radio' name="qo1" value="2 Hours"/>2 Hours
+					     </label>
+						</li>
+						<li>
+						 <label>
+						  <input type='radio' name="qo1" value="3 Hours"/>3 Hours
+					     </label>
+						</li>
+						<li>
+						 <label>
+						  <input type='radio' name="qo1" value="4 Hours"/>4 Hours
+					     </label>
+						</li>
+					</ul>
+				</article>
+			</section>
+		</div>
+	</div>
+	<template class="ghost" id="item_template">
+		<article id="{{number}}" class="qo">
+			<div id="pos" class="{{color}}">{{position}}</div>
+			<article id="ask">{{question}}</article>	
+			<ul class="options">
+				<li id="cover" class="hides"></li>
+			</ul>
+		</article>
+	</template>
+	<template class="ghost" id="option_template">
+		<li>
+		 <label>
+		  <input type='radio' name="qo{{number}}" weight="{{weight}}"/>
+		  {{data}}
+		  </label>
+		</li>
+	</template>
+    <template class="ghost" id="edit_template">
+	  <li id="editlink">
+		<span class="data">
+		 <em weight="{{weight}}">{{data}}</em>
+		  <input  id="editoption" type="text" value="" class="hide" />
+		  <button id="editbutton" class="hide">OK</button>
+		</span>
+		<span id="itemDestroy">Delete</span>
+	  </li>
+    </template>
+  </body>
+    <script type="text/javascript" src="../../as/lib/core.js"></script>
+    <script type="text/javascript" src="../../whenenv.js/lib/whenenv.js"></script>
+    <script type="text/javascript" src="../../ds/lib/core.js"></script>
+    <script type="text/javascript" src="../../streams/lib/stream.js"></script>
+    <script type="text/javascript" src="../../as-contrib/lib/as-contrib.js"></script>
+    <script type="text/javascript" src="../../transporter.js/lib/transporter.js"></script>
+    <script type="text/javascript" src="../lib/facelift.js"></script>
+</html>

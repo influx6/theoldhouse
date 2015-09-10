@@ -1,0 +1,35 @@
+{
+  "name": "utils.plug",
+  "version": "0.0.1",
+  "description": "use utilities for the plug framework",
+  "main": "./utils.plug.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+    "stackq":">=0.1.8",
+    "plugd":">=0.0.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/utils.plug"
+  },
+  "keywords": [
+    "rackdb",
+    "rack",
+    "plug",
+    "plug.js",
+    "fs",
+    "file",
+    "system",
+    "plugs",
+    "filesystem.plugs",
+    "fs.plug"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/utils.plug/issues"
+  },
+  "homepage": "https://github.com/influx6/utils.plug"
+}

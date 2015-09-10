@@ -1,0 +1,6 @@
+*.
+.*.
+*.log
+*.swp
+*.bkup
+.DS_Store

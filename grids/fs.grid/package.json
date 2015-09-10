@@ -1,0 +1,34 @@
+{
+  "name": "fs.grid",
+  "version": "0.0.3",
+  "description": "file system plug for plug.js framework",
+  "main": "./fs.grid.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+    "graceful-fs": ">=0.3.x",
+    "stackq":">=0.1.8",
+    "grids":">=0.0.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/fs.grid"
+  },
+  "keywords": [
+    "plug",
+    "plug.js",
+    "fs",
+    "file",
+    "system",
+    "plugs",
+    "filesystem.plugs",
+    "fs.plug"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/fs.grid/issues"
+  },
+  "homepage": "https://github.com/influx6/fs.grid"
+}

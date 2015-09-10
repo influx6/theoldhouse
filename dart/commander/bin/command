@@ -1,0 +1,13 @@
+library commander.bin;
+
+import 'package:commander/commander.dart';
+import 'package:commander/io/io.dart';
+import 'package:commander/platform/platform.dart';
+import 'package:commander/installer/installer.dart';
+import 'package:hub/hub.dart';
+
+void main(List args){
+  platformCommand.analyze(args);
+  ioCommand.analyze(args);
+  installCommand.analyze(args);
+}

@@ -1,0 +1,23 @@
+{
+  "name": "loveio",
+  "version": "0.0.1",
+  "description": "loveio is a easy stream server for sending and receiving data as events",
+  "main": "loveio.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/loveio"
+  },
+  "keywords": [
+    "love streams",
+    "love io"
+  ],
+  "author": "Alexander Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/loveio/issues"
+  },
+  "homepage": "https://github.com/influx6/loveio"
+}

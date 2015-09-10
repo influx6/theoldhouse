@@ -1,0 +1,29 @@
+{
+  "name": "magnus",
+  "version": "0.0.1",
+  "description": "a simple custom tag creator (think polymer+react+xtag)",
+  "main": "magnus.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:influx6/magnus.git"
+  },
+  "keywords": [
+    "magnus",
+    "client",
+    "and",
+    "server",
+    "tags",
+    "custom",
+    "html",
+    "tags"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/magnus/issues"
+  },
+  "homepage": "https://github.com/influx6/magnus"
+}

@@ -1,0 +1,270 @@
+import 'dart:io';
+import 'dart:async';
+import 'dart:convert';
+import 'package:hub/hub.dart';
+import 'package:streamable/streamable.dart' as sm;
+
+class GuardedFile{
+	MapDecorator options;
+	Switch writable;
+	File f;
+
+	static create(n,m) => new GuardedFile(path:n,readonly:m);
+
+	GuardedFile({String path, bool readonly: false}){
+		this.options = new MapDecorator.from({'readonly': readonly, 'path':path});
+		this.f = new File(this.options.get('path'));
+		this.writable = Switch.create();
+		this.writable.switchOn();
+	}
+  
+	Future rename(String name){
+		if(!this.writable.on()) return null;
+		return this.f.rename(name);
+	}
+
+	dynamic renameSync(String name){
+		if(!this.writable.on()) return null;
+		return this.f.rename(name);
+	}
+
+	Future open([FileMode mode]){
+		if(!this.writable.on() && (mode == FileMode.WRITE || mode == FileMode.APPEND)) return null;
+		return this.f.open(mode:mode);
+	}
+
+	dynamic openSync([FileMode mode]){
+		if(!this.writable.on() && (mode == FileMode.WRITE || mode == FileMode.APPEND)) return null;
+		return this.f.openSync(mode:mode);
+	}
+
+	dynamic openRead([int start,int end]){
+		return this.f.openRead(start,end);
+	}
+
+	dynamic openWrite([FileMode mode, Encoding encoding]){
+		if(!this.writable.on()) return null;
+		return this.f.openWrite(mode:mode,encoding:encoding);
+	}
+
+	Future readAsBytes(){
+		return this.f.readAsBytes();
+	}
+
+	dynamic readAsBytesSync(){
+		return this.f.readAsBytesSync();
+	}
+
+	Future readAsLines([Encoding enc]){
+		return this.f.readAsBytes();
+	}
+
+	dynamic readAsLinesSync([Encoding enc]){
+		return this.f.readAsBytesSync();
+	}
+
+	Future readAsString([Encoding enc]){
+		return this.f.readAsString(encoding: enc);
+	}
+
+	dynamic readAsStringSync([Encoding enc]){
+		return this.f.readAsStringSync(encoding: enc);
+	}
+
+	Future writeAsString(String contents, [FileMode mode, Encoding encoding]){
+		if(!this.writable.on()) return null;
+		return this.f.writeAsString(contents,mode: mode,encoding: encoding);
+	}
+
+	dynamic writeAsStringSync(String contents, [FileMode mode, Encoding encoding]){
+		if(!this.writable.on()) return null;
+		return this.f.writeAsStringSync(contents,mode: mode,encoding: encoding);
+	}
+
+	Future writeAsBytes(List<int> bytes, [FileMode mode]){
+		if(!this.writable.on()) return null;
+		return this.f.writeAsBytes(bytes,mode: mode);
+	}
+
+	dynamic writeAsBytesSync(List<int> bytes, [FileMode mode]){
+		if(!this.writable.on()) return null;
+		return this.f.writeAsBytesSync(bytes,mode: mode);
+	}
+
+	Future delete([bool r]){
+		if(!this.writable.on()) return null;
+		return this.f.delete(recursive: Hub.switchUnless(r,true));
+	}
+
+	void deleteSync([bool r]){
+		if(!this.writable.on()) return null;
+		return this.f.deleteSync(recursive: Hub.switchUnless(r,true));
+	}
+
+	Future exists(){
+		return this.f.exists();
+	}
+
+	bool existsSync(){
+		return this.f.existsSync();
+	}
+
+	Future stat(){
+		return this.f.stat();
+	}
+
+	dynamic statSync(){
+		return this.f.statSync();
+	}
+
+	dynamic get lastModified => this.f.lastModified();
+	dynamic get lastModifiedSync => this.f.lastModifiedSync();
+
+	dynamic get length => this.f.length();
+	dynamic get lengthSync => this.f.lengthSync();
+
+	bool get isWritable => this.writable.on();
+}
+
+class GuardedDirectory{
+	MapDecorator options;
+	Switch writable;
+	Directory d;
+	dynamic dm;
+  
+	static create(n,m) => new GuardedDirectory(path:n,readonly:m);
+	
+	GuardedDirectory({String path, bool readonly: false}){
+    this.options = new MapDecorator.from({'readonly': readonly, 'path':path});
+		this.d = new Directory(this.options.get('path'));
+		this.writable = Switch.create();
+		this.writable.switchOn();
+	}
+
+	dynamic createDirSync([bool f]){
+	    if(!this.writable.on() && !this.d.existsSync()) return null;
+	    return this.d.create(recursive: f);  
+	}
+	  
+	Future createDir([bool f]){
+	    if(!this.writable.on() && !this.d.existsSync()) return null;
+	    return this.d.create(recursive: f);
+	}
+	  
+	dynamic File(String path){
+	    var root = this.options.get('path') + path;
+	    return GuardedFile.create(root, this.options.get('readonly'));
+	}
+  
+	dynamic list([bool rec,bool ffl]){
+		return this.d.list(recursive: rec,followLinks:ffl);
+	}
+
+	dynamic listSync([bool rec,bool ffl]){
+		return this.d.listSync(recursive: false,followLinks: ffl);
+	}
+
+	Future rename(String name){
+		if(!this.writable.on()) return null;
+		return this.d.rename(name);
+	}
+
+	dynamic renameSync(String name){
+		if(!this.writable.on()) return null;
+		return this.d.rename(name);
+	}
+
+	Future createNewDir(String name,[bool r]){
+    	var dir = GuardedDirectory.create((this.d.path+(name)),this.options.get('readonly'));
+    	return dir.createDir(r);
+	}
+
+	dynamic createNewDirSync(String name,[bool r]){
+		var dir = GuardedDirectory.create((this.d.path+(name)),this.options.get('readonly'));
+		dir.createDirSync(r);
+		return dir;
+	}
+
+	Future createTemp(String name){
+		if(!this.writable.on()) return null;
+		return this.d.createTemp(name);
+	}
+
+	dynamic createTempSync(String name){
+		if(!this.writable.on()) return null;
+		return this.d.createTempSync(name);
+	}
+
+	Future delete([bool r]){
+		if(!this.writable.on()) return null;
+		return this.d.delete(recursive: Hub.switchUnless(r,true));
+	}
+
+	void deleteSync([bool r]){
+		if(!this.writable.on()) return null;
+		return this.d.deleteSync(recursive: Hub.switchUnless(r,true));
+	}
+
+	Future exists(){
+		return this.d.exists();
+	}
+
+	bool existsSync(){
+		return this.d.existsSync();
+	}
+
+	Future stat(){
+		return this.d.stat();
+	}
+
+	dynamic statSync(){
+		return this.d.statSync();
+	}
+
+	bool get isWritable => this.writable.on();
+
+}
+
+
+class GuardedFS{
+  final cache = Hub.createMapDecorator();
+  GuardedDirectory dir;
+
+
+  	static create(p,r) => new GuardedFS(p,r);
+  	
+	GuardedFS(String path,bool readonly){
+		this.dir = GuardedDirectory.create(path,readonly);
+	}
+
+	dynamic File(path){
+		var dir = this.cache.get(path);
+		if(dir != null && dir is GuardedFile) return dir; 
+		dir = this.dir.File(path);
+		this.cache.add(path,dir);
+		return dir;
+	}
+
+	dynamic Dir(path,[bool rec]){
+		var dir = this.cache.get(path);
+		if(dir != null && dir is GuardedDirectory) return dir; 
+		dir = this.dir.createNewDir(path,rec);
+		this.cache.add(path,dir);
+		return dir;
+	}
+
+	//FES => fileSystemEntity
+	dynamic directoryListsFES([String path,bool transform, bool rec,bool ff]){
+	  var transformed = sm.Streamable.create();
+	  if(Hub.switchUnless(transform,false))
+	   transformed.transformer.on((n){ return n.path; });
+
+	  var dir = (path != null ? this.Dir(path,rec) : this.dir);
+	  dir.list(rec,ff).listen(transformed.emit);
+	  return transformed;
+	}
+
+	dynamic directoryListings([String path]){
+		return this.directoryListsFES(path,true);
+	}
+}

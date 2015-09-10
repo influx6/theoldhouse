@@ -1,0 +1,35 @@
+{
+  "name": "utils.grid",
+  "version": "0.0.1",
+  "description": "use utilities for the grid fbp functional derivative framework",
+  "main": "./utils.grid.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+    "stackq":">=0.1.8",
+    "grids":">=0.0.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/utils.grid"
+  },
+  "keywords": [
+    "rackdb",
+    "rack",
+    "plug",
+    "plug.js",
+    "fs",
+    "file",
+    "system",
+    "plugs",
+    "filesystem.plugs",
+    "fs.plug"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/utils.grid/issues"
+  },
+  "homepage": "https://github.com/influx6/utils.grid"
+}

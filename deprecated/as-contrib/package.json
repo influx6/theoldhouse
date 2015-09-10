@@ -1,0 +1,36 @@
+{
+  "name": "as-contrib",
+  "version": "0.0.1",
+  "description": "a combination of appstack,ds and a few other libraries for extra sugar",
+  "main": "./lib/as-contrib.js",
+  "scripts": {
+    "specs": "node ./spec.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/as-extras"
+  },
+  "dependencies":{
+    "appstack":"0.x.x",
+    "em.js":"0.x.x",
+    "streams":"0.x.x",
+    "ds":"0.x.x"
+  },
+  "keywords": [
+    "extra",
+    "appstack",
+    "extras",
+    "ds",
+    "extras",
+    "as",
+    "sugar",
+    "ds",
+    "sugar"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "mit",
+  "bugs": {
+    "url": "https://github.com/influx6/as-contrib/issues"
+  },
+  "homepage": "https://github.com/influx6/as-contrib"
+}

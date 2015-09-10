@@ -1,0 +1,20 @@
+{
+  "name": "grids",
+  "main": "grid.js",
+  "version": "0.0.3",
+  "authors": [
+    "Alexander Ewetumo <trinoxf@gmail.com>"
+  ],
+  "description": "a functional fbp derivative evolving from plug",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "grids",
+    "fbp",
+    "functional",
+    "fbp"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/influx6/grid"
+}

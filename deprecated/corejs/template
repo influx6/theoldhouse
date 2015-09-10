@@ -1,0 +1,23 @@
+var module = this.module || {};
+(function(name,fn){
+  if(!module['exports']) module.exports = {};
+  module.exports[name] = fn(module.exports);
+})('Core',function(global){
+
+	global.ToolStack.load(['Callback','Promise'],function(ts){
+
+		var Core = {};
+
+		ts.ns('Core.Core',Core,global);
+	});
+});
+
+
+var module = module || {};
+(function(name,fn){
+  if(!module['exports']) module.exports = {};
+  module.exports[name] = fn;
+})('Core',function(global,callback){
+
+
+});

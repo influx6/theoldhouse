@@ -1,0 +1,30 @@
+{
+  "name": "magnus",
+  "version": "0.0.1",
+  "authors": [
+    "Alexander Ewetumo <trinoxf@gmail.com>"
+  ],
+  "description": "a awesome custom tag creator",
+  "main": "magnus.js",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "magnus",
+    "custom",
+    "tags",
+    "polymer",
+    "type",
+    "react",
+    "type"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/influx6/magnus",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

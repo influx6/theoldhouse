@@ -1,0 +1,31 @@
+{
+  "name": "db.grid",
+  "version": "0.0.1",
+  "description": "db.grid contains db based grid plugs",
+  "main": "db.grid.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+   
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/db.grid"
+  },
+  "keywords": [
+    "db.grid",
+    "db query",
+    "love quero",
+    "update",
+    "grid db",
+    "db",
+    "grid streams"
+  ],
+  "author": "Alexander Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/db.grid/issues"
+  },
+  "homepage": "https://github.com/influx6/db.grid"
+}

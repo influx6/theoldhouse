@@ -1,0 +1,12 @@
+name: commander
+author: Alexander Ewetumo <trinoxf@gmail.com>
+homepage: http://github.com/influx6/requestful
+version: 0.0.1
+description: provides a simple,useful command pattern class
+dependencies:
+   streamable: any
+   hub: any
+   path: any
+# dependency_overrides:
+#   hub:
+#     path: ../hub

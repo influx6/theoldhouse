@@ -1,0 +1,1386 @@
+
+// Equal is a helper for comparing value equality, following these rules:
+//  - Values with equivalent types are compared with reflect.DeepEqual
+//  - int, uint, and float values are compared without regard to the type width.
+//    for example, Equal(int32(5), int64(5)) == true
+//  - strings and byte slices are converted to strings before comparison.
+//  - else, return false.
+func Equal(a, b interface{}) bool {
+	if reflect.TypeOf(a) == reflect.TypeOf(b) {
+		return reflect.DeepEqual(a, b)
+	}
+	switch a.(type) {
+	case int, int8, int16, int32, int64:
+		switch b.(type) {
+		case int, int8, int16, int32, int64:
+			return reflect.ValueOf(a).Int() == reflect.ValueOf(b).Int()
+		}
+	case uint, uint8, uint16, uint32, uint64:
+		switch b.(type) {
+		case uint, uint8, uint16, uint32, uint64:
+			return reflect.ValueOf(a).Uint() == reflect.ValueOf(b).Uint()
+		}
+	case float32, float64:
+		switch b.(type) {
+		case float32, float64:
+			return reflect.ValueOf(a).Float() == reflect.ValueOf(b).Float()
+		}
+	case string:
+		switch b.(type) {
+		case []byte:
+			return a.(string) == string(b.([]byte))
+		}
+	case []byte:
+		switch b.(type) {
+		case string:
+			return b.(string) == string(a.([]byte))
+		}
+	}
+	return false
+}
+
+  core.Immutate = core.Configurable.extends({
+      init: function(obj,cursor){
+        core.Asserted(core.valids.exists(obj),'must pass obj to super!');
+        if(cursor){
+          core.Asserted(core.ImmutateCursor.instanceBelongs(cursor),'second arg* must be a cursor when supplied!');
+        }
+        this.$super();
+        this.pub('mutation');
+        this._cache = obj;
+        this.__hashes__ = [];
+        this._obj = (core.valids.Primitive(obj) 
+          && core.valids.not.List(obj) ? {} : []);
+        this._cursor = cursor || core.ImmutateCursor.use(this,'');
+
+        var self = this,shash = Math.floor((Muthash * Math.random(40)));
+
+        this.$unsecure('hash',function hashGet(){
+          var a = Math.floor((function(){ return eval(self.__hashes__.join('+')); }()));
+          return a;
+        });
+
+        this.$unsecure('ihash',function hashGet(){
+          return shash;
+        });
+
+        this.__hashes__.push(shash);
+      },
+      $updateCursors: function(c,ck,fx){
+        core.Asserted(false,'reimplement in subclass');
+      },
+      $updateCache: function(){
+        this._cache = this.toJS(); 
+      },
+      mutate: function(fn){
+        if(core.valids.not.Function(fn)) return;
+        return fn.call(this,this._cache);
+      },
+      mutation: function(f){
+        var self = this,
+        cm = core.Immutate.value(this.toMutable(),this._cursor,true);
+        
+        cm.mutate(function(ob){
+          if(core.valids.Function(f)){
+            f.call(this,ob,this.$bind(function(obm){
+              if(core.valids.exists(obm)){
+                core.Asserted(core.valids.Type(ob) === core.valids.Type(obm),'giving value must match type,can not return different types for specific mutation');
+              }
+              var me = this;
+              this.$updateCursors(obm || ob,null,function(){
+                me.$updateCache();
+              });
+            }));
+          }
+          else{
+            this.$updateCursors(ob,null,this.$bind(function(){
+              this.$updateCache();
+            }));
+          }
+          self.emit('mutation',this);
+        });
+        return cm;
+      },
+      get: function(f,noSet){
+        if(core.valids.not.String(f)) f = '';
+        return this._cursor.get(f,noSet)
+      },
+      has: function(f,noSet){
+        if(core.valids.not.String(f)) return false;
+        f = f.replace(allspaces,'');
+        if(f === '') return true;
+        var addr = f.split('.'), fs = core.enums.first(addr), rest = core.enums.rest(addr);
+        var val = this._obj[fs];
+        return val ? val.has(fs) : false;
+      },
+      iterator: function(fn,conf,zone){
+        if(core.valids.not.Function(fn)) return null;
+        conf = core.valids.isObject(conf) ? conf : {};
+        var hnx = core.enums.nextIterator(this._obj,fn,
+            conf.complete,zone || conf.zone || this,conf);
+        return hnx;
+      },
+      async: function(fn,conf,zone){
+        if(core.valids.not.Function(fn)) return null;
+        return this.iterator(function(k,i,o,fx){
+          return fx(fn.call(this,k,i,o));
+        },conf,zone);
+      },
+      toJS: function(fc){
+        var self = this,
+        keys = [];
+
+        var im = core.Immutate.clone(this._obj,function(e,i){
+          keys.push(i);
+        },{
+          complete: fc,
+          zone: self,
+        });
+  
+        return im.map;
+      },
+      toObject: function(f){
+        if(core.valids.Function(f)) f.call(this,this._cache);
+        return this._cache;
+      },
+      toMuted: function(f){
+        if(core.valids.Function(f)) f.call(this,this._obj);
+        return this._obj;
+      },
+      toJSON: function(f){
+        var json = JSON.stringify(this.toJS());
+        if(core.valids.Function(f)) f.call(this,json);
+      },
+      toMutable: function(f){
+        return this.toJS(f);
+      },
+    },
+    {
+      clone: function(obj,fn,zone){
+        if(core.valids.not.Collection(obj)) return null;
+
+        var map = core.valids.Object(obj) ? {} : [];
+        var seq = core.Sequence.value(obj);
+        var sqmap =  seq.map(function(v,k){
+           console.log('dealing:',k);
+           var eq = core.Immutate.cloneMutable(v);
+           if(eq){
+              map[k] = eq;
+             console.log('got dealing:',eq);
+           }else{
+            map[k] = v;
+           }
+        },function(res){
+           if(core.valids.Function(fn)){
+             return fn(map,res.values());
+           }
+        });
+
+        return map;
+      },
+      cloneMutable: function(e){
+        if(core.valids.Primitive(e) 
+          || core.Immutate.instanceBelongs(e) 
+          || (core.ImmutateCursor.instanceBelongs(e) && !e.locked())){
+           return core.Immutate.detransformMutable(e);
+        }
+        return null;
+      },
+      detransformMutable: function(e,fn){
+        if(core.Immutate.instanceBelongs(e) || core.ImmutateCursor.instanceBelongs(e)){
+          return e.toMutable();
+        };
+        return e;
+      },
+      value: function(n,f){
+        var arg = core.enums.toArray(arguments);
+        if(core.valids.Primitive(n)) 
+          return core.ImmutateValue.make.apply(core.ImmutateValue,arg);
+        if(core.valids.List(n)) 
+          return core.ImmutateList.make.apply(core.ImmutateList,arg);
+        if(core.valids.Object(n)) 
+          return core.ImmutateMap.make.apply(core.ImmutateMap,arg);
+        return;
+      },
+      from: function(immute){
+        if(core.ImmutateValue.instanceBelong(immute)) 
+          return core.ImmutateValue.make(n,f);
+        if(core.ImmutateList.instanceBelongs(immute)) 
+          return core.ImmutateList.make(n,f);
+        if(core.ImmutateMap.instanceBelong(immute)) 
+          return core.ImmutateMap.make(n,f);
+        return;
+      },
+      transformCollection: function(obj,to,fx,check,fr){
+        if(core.valids.Primitive(obj)) return null;
+        var it = core.enums.nextIterator(obj,function(e,i,o,fx){
+          if(!!check && core.valids.containsKey(to,i)){
+            fx(null);
+            return it.next();
+          }
+          
+          var val = core.Immutate.transformSingle(e);
+          if(val) to[i] = val;
+          if(core.valids.Function(fr)) fr(val,e,i);
+
+          fx(null);
+          return it.next();
+        },function(_,err){
+          if(core.valids.Function(fx)) fx.call(this,to,_,err);
+          return null;
+        });
+
+        return it;
+      },
+      transformSingle: function(e){
+        if(core.valids.not.exists(e)) return;
+        if(core.Immutate.instanceBelongs(e)){
+          return e.get('');
+        }
+        if(core.ImmutateCursor.instanceBelongs(e)){
+          return e;
+        }
+        return core.Immutate.value(e).get();
+      }
+  });
+
+  core.ImmutateValue = core.Immutate.extends({
+    init: function(obj,cursor,wait){
+      core.Asserted(core.valids.Primitive(obj),'arg* must be primitive(bool,string,int,..) value!');
+      if(cursor){
+        core.Asserted(core.ValueCursor.instanceBelongs(cursor),'only value cursors are allowed');
+      }
+      this.$super(obj,cursor);
+      this.type="im-value";
+      this._obj = {'value': obj};
+      var key = ['value'];
+      this.length = key.length; 
+      this.keys = key;
+      this.__hashes__.push(0);
+    },
+    $updateCursors: function(c){},
+    toMutable: function(f){
+      return this.toJS(function(g){
+        if(core.valids.Function(f)) f.call(this,g['value']);
+      })['value'];
+    },
+    toJS: function(f){
+     if(core.valids.Function(f)) f.call(this,this._obj)
+     return this._obj;
+    },
+    toObj: function(f){
+     if(core.valids.Function(f)) f.call(this,this._obj);
+     return this._obj;
+    },
+    toJSON: function(f){
+     var json = JSON.stringify(this.toJS()['value']);
+     if(core.valids.Function(f)) f.call(this,json);
+     return json;
+    },
+  });
+  
+  core.ImmutateCollection = core.Immutate.extends({
+    $updateCursors: function(co,ck,fx){
+      var self = this,it = core.Immutate.transformCollection(co,this._obj,function(c){
+        self.keys = (Object.keys ? Object.keys(c) : core.enums.keys(c));
+        self.length = self.keys.length;
+        if(core.valids.Function(fx)) fx.apply(self,arguments);
+      },ck,function(cv,n,ind){
+        if(core.ImmutateCursor.instanceBelongs(cv)){
+          var len = self.__hashes__.length;
+          self.__hashes__.push(cv.hash());
+          cv.after('mutation',function(f){
+            self.__hashes__[len] == f.hash();
+          });
+        };
+      });
+      it.next();
+    },
+  });
+
+  core.ImmutateList = core.ImmutateCollection.extends({
+    init: function(obj,c,wait){
+      core.Asserted(core.valids.List(obj),'arg* must pass List/Array value!');
+      if(c){
+        core.Asserted(core.ListCursor.instanceBelongs(c),'only value cursors are allowed');
+      }
+      this.$super(obj,c);
+      this._obj = []; 
+      this.type="im-list";
+      this.length = this._obj.length;
+      this.keys = core.enums.range(0,obj.length);
+      if(!wait) this.$updateCursors(obj);
+    },
+  });
+
+  core.ImmutateMap = core.ImmutateCollection.extends({
+    init: function(obj,c,wait){
+      core.Asserted(core.valids.Object(obj),'arg* must be Object/{} value!');
+      if(c){
+        core.Asserted(core.MapCursor.instanceBelongs(c),'only value cursors are allowed');
+      }
+      this.$super(obj,c);
+      this.type="im-map";
+      this._obj = {}; 
+      this.keys = [];
+      this.length = 0;
+      if(!wait) this.$updateCursors(obj);
+    },
+  });
+
+  core.ImmutateCursor = core.Configurable.extends({
+    init: function(obj,addrs,root){
+      core.Asserted(core.Immutate.instanceBelongs(obj),'must be a immutate instance or child')
+      this.$super();
+      this.root = root;
+      this.addr = addrs;
+      this.root = obj;
+      this.history = core.ImmutateHistory.make(this.root);
+
+
+      this.pub('mutation');
+
+      var lockSwitch = core.Switch();
+      lockSwitch.on();
+
+      this.$unsecure('core',function(){
+        return this.history.current();
+      });
+
+      this.$unsecure('locked',function(){ return lockSwitch.isOn; });
+      this.$secure('useless',function(){ return lockSwitch.off(); });
+
+      this.$unsecure('callOwner',function(fx){
+        if(core.valids.not.Function(fx)) return;
+        return fx.call(this,this.core(),this.addr);
+      });
+  
+      this.$secure('delegateMutation',function(f){
+        f.afterOnce('mutation',this.$bind(function(p){
+           this.history.push(p);
+           this.emit('mutation',this);
+           p.afterOnce(this.delegateMutation);
+        }));
+      });
+      
+      this.delegateMutation(this.root);
+    },
+    get: function(f,noSet){
+      core.Asserted(false,'implement cursor.get in subclass');
+    },
+    value: function(){
+      core.Asserted(false,'implement cursor.value in subclass');
+    },
+    hash: function(){
+      return this.core().hash();
+    },
+    toMutable: function(f){
+      return this.core().toMutable(f);
+    },
+    toJS: function(f){
+      return this.core().toJS(f);
+    },
+    toJSON: function(f){
+      return this.core().toJSON(f);
+    },
+    toObject: function(f){
+      return this.core().toObject(f);
+    },
+  },{
+    value: function(n,f,v){
+      if(core.Immutate.instanceBelongs(n)) return;
+      if(core.valids.Primitive(n)) 
+        return core.ImmutateCursor.use(core.ImmutateValue.make(n,f),v);
+      if(core.valids.List(n)) 
+        return core.ImmutateCursor.use(core.ImmutateList.make(n,f),v);
+      if(core.valids.Object(n)) 
+        return core.ImmutateCursor.use(core.ImmutateMap.make(n,f),v);
+      return;
+    },
+    use: function(n,f){
+      if(core.ImmutateValue.instanceBelongs(n)) 
+        return core.ValueCursor.make(n,f);
+      if(core.ImmutateList.instanceBelongs(n)) 
+        return core.ListCursor.make(n,f);
+      if(core.ImmutateMap.instanceBelongs(n)) 
+        return core.MapCursor.make(n,f);
+      return;
+    }
+  });
+
+  core.ValueCursor = core.ImmutateCursor.extends({
+    init: function(f,addr,root){
+      this.$super(f,addr,root);
+      this.type='value';
+    },
+    get: function(){ return this; },
+    set: function(k){
+      return this.callOwner(function(v){
+        if(this.value() !== k){
+          v.mutation(function(o){
+            this._obj['value'] = k;
+          });
+        }
+      });
+    },
+    value: function(){
+     return this.callOwner(function(v){
+        return v.toJS()['value'];
+     });
+    }
+  });
+  
+  core.CollectionCursor = core.ImmutateCursor.extends({
+    init: function(f,a,g){
+      this.$super(f,a,g);
+    },
+    get: function(f,noSet){
+      if(core.valids.not.exists(f) || f.replace(allspaces,'') === '') return this;
+      return this.callOwner(function(v){
+        var ob = v._obj, 
+        addr = f.split('.'),
+        first = core.enums.first(addr),
+        rest = core.enums.rest(addr).join('.');
+
+        if(core.valids.not.containsKey(ob,first)) return null;
+
+        var val = core.Immutate.transformSingle(ob[first]);
+        ob[first] = val;
+
+        return val.get(rest);
+      });
+
+    },
+    value: function(){
+      return this.callOwner(function(v){
+        return v.toJS();
+      });
+    },
+    values: function(){
+      return this.callOwner(function(v){
+        if(core.valids.List(v.toMuted())) return v.get();
+        return core.Immutate.value(core.enums.values(v.toMuted())).get();
+      });
+    },
+    map: function(fx,fc){
+      return this.callOwner(function(v){
+        var res = [];
+        var it = v.async(function(e,i,o){
+          res.push(fx.call(this,e.get().value(),i));
+          it.next();
+        },fc);
+        it.next();
+        return core.Immutate.value(res).get();
+      });
+    },
+    filter: function(fx,fc){
+      return this.callOwner(function(v){
+        var res = [];
+        var it = v.async(function(e,i,o){
+          if(!!fx.call(this,e.get().value(),i)){
+            res.push(e);
+          }
+          it.next();
+        },fc);
+        it.next();
+        return core.Immutate.value(res).get();
+      });
+    },
+    where: function(m){
+      if(core.valids.not.Object(m)) return;
+      return this.filter(function(e,i){
+        
+      });
+    },
+  });
+
+  core.ListCursor = core.CollectionCursor.extends({
+    init: function(f,addr,root){
+      this.$super(f,addr,root);
+      this.type='list';
+    },
+    swap: function(i,f){
+     return this.callOwner(function(v){
+       if(i >= v.length) return;
+       return v.mutation(function(l,init){
+          l[i] = f;
+          return init();
+       });
+     });
+    },
+    push: function(f){
+     return this.callOwner(function(v){
+       return v.mutation(function(l,init){
+          l.push(f);
+          return init();
+       });
+     });
+    },
+    shift: function(){
+     return this.callOwner(function(v){
+       if(v.length <= 0) return;
+       var item;
+       v.mutation(function(l,init){
+          item = l.shift();
+          return init();
+       });
+       return item;
+     });
+    },
+    unshift: function(f){
+     var args = core.enums.toArray(arguments);
+     return this.callOwner(function(v){
+       return v.mutation(function(l,init){
+         if(core.valids.Function(l.unshift)){
+           l.unshift(f);
+           return init();
+         }
+         return init(args.concat(l));
+       });
+     });
+    },
+  });
+
+  core.MapCursor = core.CollectionCursor.extends({
+    init: function(f,addr,root){
+      this.$super(f,addr,root);
+      this.type='map';
+    },
+  });
+
+  core.Sequence = core.Future.extends({
+      init: function(){
+       this.$super();
+       this.parent = null;
+      },
+      getIterator: function(f){
+       core.Asserted(false,'implement  getIterator detail in child');
+      },
+      each: function(fn,fc){
+       core.Asserted(false,'implement each detail in child');
+      },
+      eachAsync: function(fn,fc){
+       core.Asserted(false,'implement each detail in child');
+      },
+      map: function(fn,fc){
+        return core.MapSequence.make(this,fn,fc);
+      },
+      filter: function(fn,fc){
+        return core.FilterSequence.make(this,fn,fc);
+      },
+      while: function(fn,fc){
+        return core.WhileSequence.make(this,fn,fc);
+      },
+      values: function(){
+       core.Asserted(false,'implement each detail in child');
+      },
+      toObject: function(){
+       core.Asserted(false,'implement each detail in child');
+      },
+      toArray: function(){
+       core.Asserted(false,'implement each detail in child');
+      },
+    },{
+     value: function(){
+       var args = core.enums.toArray(arguments),
+           first = core.enums.first(args),
+           rest = core.enums.rest(args);
+
+       if(core.Sequence.instanceBelongs(first))
+         return first;
+
+       if(core.valids.Primitive(first)){
+         if(core.valids.String(first)) first = first.split('');
+         if(core.valids.Number(first)) first = [first];
+         return core.CollectionSequence.value.apply(core.CollectionSequence,[first].concat(rest));
+       }
+       if(core.valids.List(first) || core.valids.Object(first))
+         return core.CollectionSequence.value.apply(core.CollectionSequence,args);
+     }
+  });
+
+  core.TargetSequence = core.Sequence.extends({
+    init: function(data){
+      this.$super();
+      this.data = data;
+      this.complete(null);
+    },
+    values: function(){
+      return this.data;
+    },
+    keys: function(){
+      var self = this;
+      return this.then(this.$bind(function(){
+        if(core.valids.List(this.data)) return core.enums.keys(this.data);
+        return self.map(function(v,k){ return k; }).values();
+      }));
+    },
+    toArray: function(){
+      return this.then(function(data){
+        if(core.valids.List(this.data)) return this.data;
+        return this.map(function(v,k){ return v; }).values();
+      });
+    },
+    toObject: function(){
+      if(core.valids.Object(this.data)) return this.data;
+      var mp = core.Sequence.value({});
+      this.each(function(v,k){ 
+        mp.data[k] = v;
+      });
+      return mp;
+    },
+    get: function(){
+       core.Asserted(false,'implement each detail in child');
+    },
+    set: function(){
+       core.Asserted(false,'implement each detail in child');
+    },
+    root: function(){
+       return this;
+    },
+    length: function(){
+      return this.toArray().length();
+    },
+  });
+
+  core.CollectionSequence = core.TargetSequence.extends({
+    init: function(data,checker){
+      if(core.valids.Function(checker)) checker(data);
+      this.$super();
+      this.data = data;
+    },
+    getIterator: function(){
+      return core.ForwardCollectionIterator(this.data);
+    },
+    get: function(i){
+      return this.data[i];
+    },
+    set: function(i,d){
+      this.data[i] = d;
+    },
+    root: function(){
+       return this;
+    },
+    splice: function(){
+      core.Asserted(false,'implement each detail in child');
+    },
+    unshift: function(){
+      core.Asserted(false,'implement each detail in child');
+    },
+    shift: function(){
+      core.Asserted(false,'implement each detail in child');
+    },
+    each: function(fn,fc){
+      if(core.valids.not.Function(fn)) return;
+      var res,resc, im = this.getIterator();
+      while(im.hasNext()){
+        im.moveNext();
+        res = fn(im.current(),im.getIndex());
+      };
+      if(core.valids.Function(fc)) resc = fc(res,this);
+      return resc || res;
+    },
+    eachAsync: function(fn,fc){
+      if(core.valids.not.Function(fn)) return;
+      var res,resc, im = this.getIterator();
+      var pop = function pop(ix){
+       if(ix.hasNext()){
+         return res = fn(ix.current(),ix.getIndex(),function(){ return pop(ix); });
+       };
+       if(core.valids.Function(fc)) resc = fc(res,this);
+       return resc || res;
+      };
+
+      return pop(im);
+    },
+  },{
+    value: function(n){
+      if(core.valids.List(n)) return core.ListSequence.make(n);
+      if(core.valids.Object(n)) return core.ObjectSequence.make(n);
+    }
+  });
+
+  core.ListSequence = core.CollectionSequence.extends({
+    init: function(data){
+      this.$super(data,function(d){
+        core.Asserted(core.valids.List(d),'only lists are allowed');
+      });
+    },
+    set: function(i,d){
+      if(i > this.length()) return;
+      this.$super(i,d);
+    },
+    add: function(i){
+      this.set(this.length(),i);
+    },
+    splice: function(){
+      return core.Sequence.value(this.data.splice.apply(this.data,arguments));
+    },
+    unshift: function(){
+      return core.Sequence.value(this.data.unshift.apply(this.data,arguments));
+    },
+    shift: function(){
+      return core.Sequence.value(this.data.shift.apply(this.data,arguments));
+    },
+  },{});
+
+  core.ObjectSequence = core.CollectionSequence.extends({
+    init: function(data){
+      this.$super(data,function(d){
+        core.Asserted(core.valids.Object(d),'only objects are allowed');
+      });
+    },
+    set: function(i,d){
+      if(i > this.length()) return;
+      this.$super(i,d);
+    },
+    add: function(i){
+      this.set(this.length(),i);
+    },
+    splice: function(){
+      var f = this.filter(core.funcs.always(true));
+      return f.splice.apply(f,arguments);
+    },
+    unshift: function(){
+      var f = this.filter(core.funcs.always(true));
+      return f.unshift.apply(f,arguments);
+    },
+    shift: function(){
+      var f = this.filter(core.funcs.always(true));
+      return f.shift.apply(f,arguments);
+    },
+    values: function(){
+      return this.data;
+    }
+  },{});
+
+  core.OperationalSequence = core.Sequence.extends({
+    init: function(parent,eachitem,completion){
+      this.$super();
+      this.parent =  core.Sequence.value(parent);
+      this.eachitem = eachitem;
+      this.completion = completion || core.funcs.identity;
+    },
+    root: function(){
+       return this.parent.root();
+    },
+    getIterator: function(){
+      return this.parent.getIterator();
+    },
+    values: function(){
+      var vals = [];
+      return this.each().values();
+    },
+    keys: function(){
+      var vals = [];
+      return this.each().keys();
+    },
+    toArray: function(){
+      return this.each().toArray();
+    },
+    toObject: function(){
+      return this.each().toObject();
+    },
+    memoized: function(){
+      return core.MemoizedSequence.make(this);
+    },
+    get: function(){
+      var f = this.each();
+      return f.get.apply(f,arguments);
+    },
+    splice: function(){
+      var f = this.each();
+      return f.splice.apply(f,arguments);
+    },
+    unshift: function(){
+      var f = this.each();
+      return f.unshift.apply(f,arguments);
+    },
+    shift: function(){
+      var f = this.each();
+      return f.shift.apply(f,arguments);
+    },
+  });
+
+  core.MemoizedSequence = core.OperationalSequence.extends({
+    init:function(parent){
+     this.$super(parent);
+    },
+    each: function(){
+      if(this.cached) return this.cached;
+      this.cached = this.parent.each();
+      return this.cached;
+    },
+    eachAsync: function(){
+      if(this.cached) return this.cached;
+      this.cached = this.parent.eachAsync();
+      return this.cached;
+    },
+  });
+
+  core.MapSequence = core.OperationalSequence.extends({
+    init: function(parent,eachitem,completion){
+      this.$super(parent,eachitem,completion);
+    },
+    each: function(){
+      var seq = core.Sequence.value([]);
+      this.parent.each(this.$bind(function(v,k){
+        seq.data.push(this.eachitem(v,k));
+      }),this.$bind(function(res,seq){
+        return this.completion(res,seq);
+      }));
+      return seq;
+    }
+  });
+
+  core.FilterSequence = core.OperationalSequence.extends({
+    init: function(parent,eachitem,completion){
+      this.$super(parent,eachitem,completion);
+    },
+    each: function(){
+      var seq = core.Sequence.value([]);
+      this.parent.each(this.$bind(function(v,k){
+        if(this.eachitem(v,k)) seq.data.push(v);
+      }),this.completion);
+      return seq;
+    }
+  });
+
+  core.FilterKeySequence = core.OperationalSequence.extends({
+    init: function(parent,eachitem,completion){
+      this.$super(parent,eachitem,completion);
+    },
+    each: function(){
+      var seq = core.Sequence.value([]);
+      this.parent.each(this.$bind(function(v,k){
+        if(this.eachitem(v,k)) seq.data.push(k);
+      }),this.completion);
+      return seq;
+    }
+  });
+
+  core.WhereSequence = core.OperationalSequence.extends({
+    init: function(parent,eachitem,completion){
+      this.$super(parent,eachitem,completion);
+    },
+    each: function(){
+      this.parent.filter(this.eachitem,this.completion);
+    }
+  });
+  
+  core.StreamSelect = core.Class({
+      init: function(shouldRemove,stream){
+        var self = this,locked = false;
+        this.shouldRemove = core.valids.isBoolean(shouldRemove) ? shouldRemove : false;
+
+        var boot = core.Promise.create();
+        this.boot = boot.promise();
+        this.packets = ds.List();
+        this.streams = core.Stream.make();
+        this.mutts = this.streams.mutts;
+        this.$ = {};
+
+        this.isLocked = function(){ return !!locked; };
+
+        this.lock = function(){
+          this.locked = true;
+        };
+
+        this.__unlock = function(){
+          this.locked = false;
+        };
+
+        this.streams.on(function(i){
+          if(!locked) self.packets.add(i);
+        });
+
+        this.streams.once(function(j){
+          boot.resolve(self);
+        });
+
+        var createMuxer = core.StreamSelect.createMuxer(this);
+        this.createMux = createMuxer(this.$);
+
+        this.createMux('one',function(fn,item,end){
+          if(!!fn(item,end)){
+            return end() || true;
+          }
+        });
+
+        this.createMux('list',function(fn,m,get,sm){
+          var list = [], kill = false;
+          while(!kill && m.moveNext()){
+            var item = get(m);
+            if(!!fn.call(null,item,function(){ kill = true; }))
+              list.push(item);
+          };
+          sm.emit(list);
+        },true);
+
+        this.createMux('all',function(fn,item,end){
+          return !!fn(item,end);
+        });
+
+        if(stream) this.bindStream(stream);
+      },
+      bindStream: function(stream){
+        if(!core.Stream.isType(stream) || this.isLocked()) return;
+        var pk = core.funcs.bind(this.streams.emit,this.streams);
+        stream.on(pk);
+        this.streams.onEvent('close',function(){
+          stream.off(pk);
+        });
+      },
+      destroy: function(){
+        this.streams.close();
+        this.packets.clear();
+      },
+      emit: function(f){
+        if(this.isLocked()) return;
+        this.streams.emit(f);
+      }
+    },{
+      createMuxer: function(select){
+
+        var getCurrent = function(k){
+          if(select.shouldRemove){
+            var item = select.packets.removeHead();
+            if(item) return item.data;
+          }
+          return k.current();
+        };
+
+        var operationGenerator = function(fn,overtake){
+          var ps = core.Stream.make();
+          ps.pause();
+          select.boot.done(function(r){
+            var item, endKick = false,
+                end = function(){ endKick = true; },
+                move = select.packets.iterator();
+
+            // ps.onEvent('drain',function(){ ps.close(); });
+
+            if(overtake){
+              fn.call(null,move,getCurrent,ps);
+            }
+            else{
+              while(!endKick && move.moveNext()){
+                item = getCurrent(move);
+                if(!!fn.call(null,item,end)){
+                  ps.emit(item);
+                }
+              };
+            }
+
+            ps.resume();
+          });
+          return ps;
+        };
+
+        return function(ops){
+          return function(id,fn,noIterate){
+            if(!core.valids.isString(id) && !core.valids.isFunction(fn)) return null;
+            var pass = core.valids.isBoolean(noIterate) ? noIterate : false;
+            if(!!ops[id]) return null;
+            return ops[id] = (function(gn){
+              gn = gn || funcs.always(true);
+              return operationGenerator(function(){
+                var args = [gn].concat(core.enums.toArray(arguments));
+                return fn.apply(null,args);
+              },pass);
+            });
+          };
+        };
+      }
+  });
+
+  AppStack.Promise = (function(){
+
+       var Arr = Array.prototype,
+        Obj = Object.prototype,
+        util = AppStack.Util,
+        typeOf = function(o,type){
+          var res = ({}).toString.call(o).replace(/\[object /,'').replace(/\]$/,'').toLowerCase();
+          if(type) return (res === type);
+          return res;
+        },
+        Splice = function(arg,b,e){
+          return Arr.splice.call(arg,b || 0,e || arg.length);
+        },
+        getKeys = function(o){
+          var keys = [];
+          for(var i in o){ keys.push(i); }
+          return keys;
+        },
+        eachSync = function(obj,iterator,complete,scope,breaker){
+                if(!iterator || typeof iterator !== 'function') return false;
+                if(typeof complete !== 'function') complete = function(){};
+
+
+                var step = 0, keys = getKeys(obj),fuse;
+
+                // if(typeof obj === 'string') obj = this.values(obj);
+
+                if(!keys.length) return false;
+
+                fuse = function(){
+                  var key = keys[step];
+                  var item = obj[key];
+
+                  (function(z,a,b,c){
+                    if(breaker && (breaker.call(z,a,b,c))){ /*complete.call(z);*/ return; }
+                    iterator.call(z,a,b,c,function completer(err){
+                        if(err){
+                          complete.call(z,err);
+                          complete = function(){};
+                        }else{
+                          step += 1;
+                          if(step === keys.length) return complete.call(z);
+                          else return fuse();
+                        }
+                    });
+                 }((scope || this),item,key,obj));
+                };
+
+                fuse();
+          },
+        Promise = (function(){
+
+          var generator = function(fn){
+
+            var fire = function(arr,args,ctx){
+              return eachSync(arr,function(e,i,o,c){
+                if(e && typeOf(e,'function'))
+                  e.apply(ctx,(typeOf(args,'array') ? args : [args]));
+                c(false);
+              });
+            },
+            proxy = function(fn,scope){
+              return function(){
+                var args = Arr.splice.call(arguments,0,arguments.length);
+                return fn.apply(scope,args);
+              };
+            },
+            p = {
+              cfg: {
+                resolved: false,
+                rejected: false,
+              },
+              state: util.bind(function(){
+                if(this.cfg.resolved && !this.cfg.rejected) return "resolved";
+                if(!this.cfg.resolved && this.cfg.rejected) return "rejected";
+                if(!this.cfg.resolved && !this.cfg.rejected) return "pending";
+              },p),
+              resLists:{ done: [], fail: [], notify: [] },
+              lists:{ done: [], fail: [], notify: [] }
+            };
+
+            p.destroy = function(){
+               util.explode(resLists.done);
+               util.explode(resLists.fail);
+               util.explode(resLists.notify);
+               util.explode(lists.done);
+               util.explode(lists.fail);
+               util.explode(lists.notify);
+            };
+
+            p.done = util.bind(function(fn){
+              if(typeof fn !== 'function') return this;
+              var args = this.resLists.done;
+              if(this.cfg.resolved && !this.cfg.rejected){ fn.apply(args[1],args[0]); return this; };
+              if(this.lists.done.indexOf(fn) !== -1) return;
+              this.lists.done.push(fn);
+              return this.promise();
+            },p);
+
+            p.fail = util.bind(function(fn){
+              if(typeof fn !== 'function') return this;
+              var args = this.resLists.fail;
+              if(!this.cfg.resolved && this.cfg.rejected){ fn.apply(args[1],args[0]); return this; };
+              if(this.lists.fail.indexOf(fn) !== -1) return;
+              this.lists.fail.push(fn);
+              return this.promise();
+            },p);
+
+            p.progress = util.bind(function(fn){
+              if(typeof fn !== 'function') return this;
+              var args = this.resLists.notify;
+              if(this.cfg.resolved || this.cfg.rejected){ fn.apply(args[1],args[0]); return this; };
+              if(this.lists.notify.indexOf(fn) !== -1) return;
+              this.lists.notify.push(fn);
+              return this.promise();
+            },p);
+
+            p.then = util.bind(function(done,fail,progressfn){
+              var self = this;
+              var defer = generator();
+
+
+              if(!!done){
+                  self.done(function(){
+                    var args = Arr.splice.call(arguments,0,arguments.length);
+                    var ret = done.apply({},args);
+
+                    if(!ret) return self.done(function(){
+                      var args = Arr.splice.call(arguments,0,arguments.length);
+                      defer.resolveWith(args,defer);
+                    });
+
+                    if(typeof ret['isPromise'] !== 'undefined' && ret.isPromise()){
+                      ret.done(function(){
+                        var args = Arr.splice.call(arguments,0,arguments.length);
+                        defer.resolveWith(args,defer);
+                      });
+                    }else defer.resolve(ret);
+                });
+              }
+
+              if(!!fail){
+                self.fail(function(n){
+                    var args = Arr.splice.call(arguments,0,arguments.length);
+                    var ret = fail.apply({},args);
+
+                    if(!ret) return self.fail(function(){
+                      var args = Arr.splice.call(arguments,0,arguments.length);
+                      defer.rejectWith(args,defer);
+                    });
+
+                    if(typeof ret['isPromise'] !== 'undefined' && ret.isPromise()){
+                      ret.fail(function(){
+                        var args = Arr.splice.call(arguments,0,arguments.length);
+                        defer.rejectWith(args,defer);
+                      });
+
+                    }else defer.reject(ret);
+                });
+              }
+
+             if(!!progressfn){
+               self.progress(function(){
+
+                    var args = Arr.splice.call(arguments,0,arguments.length);
+                    var ret = progressfn.apply({},args);
+
+
+
+                    if(!ret) return self.progress(function(){
+                      var args = Arr.splice.call(arguments,0,arguments.length);
+                      defer.notifyWith(args,defer);
+                    });
+
+                    if(typeof ret['isPromise'] !== 'undefined' && ret.isPromise()){
+                      ret.progress(function(){
+                        var args = Arr.splice.call(arguments,0,arguments.length);
+                        defer.notifyWith(args,defer);
+                      });
+                    }else defer.notify(ret);
+               });
+             }
+
+              return defer;
+            },p);
+
+            p.resolveWith = util.bind(function(args,ctx){
+              if(this.cfg.resolved || this.cfg.rejected) return;
+              this.cfg.rejected = false;
+              this.cfg.resolved = true;
+              this.resLists.done = [args,ctx];
+              this.resLists.notify = [args,ctx];
+              fire(this.lists.done,args,ctx);
+              fire(this.lists.notify,args,ctx);
+              return this;
+            },p);
+
+            p.rejectWith = util.bind(function(args,ctx){
+              if(this.cfg.resolved || this.cfg.rejected) return;
+              this.cfg.rejected = true;
+              this.cfg.resolved = false;
+              this.resLists.fail = [args,ctx];
+              this.resLists.notify = [args,ctx];
+              fire(this.lists.fail,args,ctx);
+              fire(this.lists.notify,args,ctx);
+              return this;
+            },p);
+
+            p.notifyWith = util.bind(function(args,ctx){
+              if(this.cfg.resolved || this.cfg.rejected) return;
+              // this.cfg = "resolved",
+              this.resLists.notify = [args,ctx];
+              fire(this.lists.notify,args,ctx);
+              return this;
+            },p);
+
+            p.resolve = util.bind(function(){
+              var args = Arr.splice.call(arguments,0,arguments.length);
+              this.resolveWith(args,this);
+              return this;
+            },p);
+
+            p.reject = util.bind(function(){
+              var args = Arr.splice.call(arguments,0,arguments.length);
+              this.rejectWith(args,this);
+              return this;
+            },p);
+
+            p.notify = util.bind(function(){
+              var args = Arr.splice.call(arguments,0,arguments.length);
+              this.notifyWith(args,this);
+              return this;
+            },p);
+
+            p.promise = util.bind(function(){
+              var shell = {},self = this;
+              shell.fail = function(fn){
+                  self.fail(fn);
+                  return this;
+              };
+              shell.progress = function(fn){
+                  self.progress(fn);
+                  return this;
+              };
+              shell.done = function(fn){
+                  self.done(fn);
+                  return this;
+              };
+
+              shell.state = proxy(this.state,this);
+              shell.then = proxy(this.then,this);
+              shell.promise = function(){return this; }
+              shell.isPromise = function(){ return true; }
+
+              self.promise = function(){
+                return shell;
+              };
+
+              return shell;
+            },p);
+
+            p.isPromise = function(){ return true; };
+
+            if(fn && typeof fn === 'function'){
+              try{
+                fn(p);
+              }catch(e){
+                p.reject(e);
+              };
+              return p;
+            }
+            if(fn && typeof fn !== 'function' && fn !== null && fn !== false && fn !== 'undefined') return p.resolve(fn);
+            if(typeof fn !== 'function' && fn === false) return p.reject(fn);
+
+            return p;
+          };
+
+          return {
+            name:"AppStack.Promise",
+            description: "A Promise A spec compatible promise object",
+            licenses:[ { type: "mit", url: "http://mths.be/mit" }],
+            author: "Alexander Adeniyi Ewetumo",
+            create: function(fn){
+              return generator(fn);
+            },
+            when: function(){
+              var args = Arr.splice.call(arguments,0,arguments.length),
+              len = args.length,
+              counter = 0,
+              // set = [],
+              argd = [],
+              defer = generator();
+
+              eachSync(args,function(e,i,o,c){
+                // if(e && typeof e !== 'function') return c(false);
+                var a = (e['isPromise'] && e.isPromise()) ? e : generator(e);
+                a.then(function(){
+                  counter += 1;
+                  if(counter === len) defer.resolve(argd);
+                },function(){
+                  defer.reject(argd);
+                },function(){
+                  var res = Arr.splice.call(arguments,0,arguments.length);
+                  argd.push(res.length == 1 ? res[0] : res);
+                });
+
+                // set.push(a);
+                c(false);
+              });
+
+              return defer;
+            },
+          };
+        })();
+
+        return Promise;
+
+  })();
+
+  AppStack.MutatorPromise = function(fn){
+
+    var util = AppStack.Util, mutator = {
+      name:"AppStack.MutatorPromise",
+      description: "uses promise to create a top-down mutating tree where a return type can be mutated",
+      licenses:[ { type: "mit", url: "http://mths.be/mit" }],
+      author: "Alexander Adeniyi Ewetumo",
+    };
+
+    mutator._locked = false;
+    mutator.mutators = AppStack.Promise.create();
+    mutator.history = [];
+
+    mutator.add = function(fn){
+      if(this.locked() || this.disabled()) return;
+      var current = this.history[this.history.length - 1];
+
+      this.history.push(current.then(function(){
+        var args = util.toArray(arguments);
+        return fn.apply(this,args);
+      }));
+    };
+
+    mutator.fireWith = function(context,args){
+      if(this.disabled()) return;
+      var self = this,
+        first = this.history[0],
+        last = this.history[this.history.length - 1];
+
+      first.resolveWith(args,context);
+
+      last.done(function(){
+        var args = util.toArray(arguments)
+        self.mutators.resolveWith(args,this);
+      });
+    }
+
+    mutator.close = function(){
+      util.explode(this.history);
+      this.mutators.destroy();
+      util.explode(this.mutators);
+      this.disable();
+    };
+
+    mutator.fire = function(){
+      if(this.disabled()) return;
+        var args = util.toArray(arguments);
+        this.fireWith(this,args);
+    };
+
+    mutator.lock = function(){
+      this._locked = true;
+    };
+
+    mutator.disable = function(){
+      this.mutators = null;
+    };
+
+    mutator.disabled = function(){
+      return this.mutators === null;
+    };
+
+    mutator.locked = function(){
+      return this._locked === true;
+    };
+
+
+    mutator.history.push(AppStack.Promise.create());
+    mutator.add(fn);
+    return mutator;
+  };

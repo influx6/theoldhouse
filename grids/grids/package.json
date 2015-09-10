@@ -1,0 +1,19 @@
+{
+  "name": "grids",
+  "version": "0.0.3",
+  "description": "reactive function code block grid",
+  "main": "./grids.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+    "stackq":">=0.2.2"
+  },
+  "keywords": ["grid","reactive programming","functional","reactive functional programming"],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/grid"
+  },
+  "author": "Alexander Ewetumo",
+  "license": "mit"
+}

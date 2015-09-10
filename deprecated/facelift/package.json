@@ -1,0 +1,34 @@
+{
+  "name": "facelift",
+  "version": "0.0.1",
+  "description": "a front-end library for apply standard look and feel to html pages",
+  "main": "./lib/facelift.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/influx6/faceliftUI"
+  },
+  "dependencies":{
+    "appstack":"0.x.x",
+    "em.js":"0.x.x",
+    "streams":"0.x.x",
+    "ds":"0.x.x",
+    "transporter":"0.x.x",
+    "whenEnv":"0.x.x"
+  },
+  "keywords": [
+    "facelift",
+    "UI",
+    "web",
+    "page",
+    "customization"
+  ],
+  "author": "Alexander Adeniyin Ewetumo",
+  "license": "Mit",
+  "bugs": {
+    "url": "https://github.com/influx6/faceliftUI/issues"
+  },
+  "homepage": "https://github.com/influx6/faceliftUI"
+}
